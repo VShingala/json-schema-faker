@@ -28,7 +28,7 @@ describe('jsf', () => {
       example: '123',
     };
     jsf.option('useExamplesValue', true);
-    expect(jsf.generate(schema, undefined, () => { console.log('here'); return [{ error: 'some' }]; })).to.be.an('number');
+    expect(jsf.generate(schema, undefined, () => { return [{ error: 'some' }]; })).to.be.an('number');
   });
 });
 

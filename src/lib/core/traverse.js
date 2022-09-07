@@ -41,7 +41,6 @@ function traverse(schema, path, resolve, rootSchema, validateSchema) {
       const randomExample = random.pick(fixedExamples);
       if (validateSchema) {
         const result = validateSchema(schema, randomExample);
-        console.log(result);
         // Use example only if valid
         if (result && result.length === 0) {
           return {
