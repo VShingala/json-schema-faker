@@ -91,7 +91,7 @@ function clampDateTime(value) {
 function handleExclusiveMaximum(schema, max) {
   max = _.has(schema, 'maximum') && schema.maximum !== Number.MAX_VALUE ? schema.maximum : max;
   if (_.has(schema, 'exclusiveMaximum')) {
-    if (typeof schema.exclusiveMaximum === 'boolean') {
+    if (typeof schema.exclusiveMaximum === 'boolean' && schema.exclusiveMaximum === true) {
       return schema.multipleOf ? max - schema.multipleOf : max - 1;
     }
     if (typeof schema.exclusiveMaximum === 'number') {
@@ -104,7 +104,7 @@ function handleExclusiveMaximum(schema, max) {
  function handleExclusiveMinimum(schema, min) {
   min = _.has(schema, 'minimum') && schema.maximum !== -Number.MAX_VALUE ? schema.minimum : min;
   if (_.has(schema, 'exclusiveMinimum')) {
-    if (typeof schema.exclusiveMinimum === 'boolean') {
+    if (typeof schema.exclusiveMinimum === 'boolean' && schema.exclusiveMinimum === true) {
       return schema.multipleOf ? min + schema.multipleOf : min + 1;
     }
     if (typeof schema.exclusiveMinimum === 'number') {
