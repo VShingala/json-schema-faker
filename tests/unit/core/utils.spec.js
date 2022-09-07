@@ -513,4 +513,13 @@ describe('Utils', () => {
       expect(cleaned).to.eql({ b: {}, c: { d: 'string value' } });
     });
   });
+  describe('clean function', () => {
+    it('should return same value if not passed an object', () => {
+      expect(utils.clean(null)).to.eql(null);
+      expect(utils.clean('string value')).to.eql('string value');
+      expect(utils.clean(undefined)).to.eql(undefined);
+      expect(utils.clean(123)).to.eql(123);
+      expect(utils.clean(true)).to.be.true;
+    });
+  });
 });
