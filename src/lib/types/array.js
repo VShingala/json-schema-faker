@@ -24,7 +24,7 @@ function unique(path, items, value, sample, resolve, traverseCallback) {
   items.forEach(walk);
 
   // TODO: find a better solution?
-  let limit = 10;
+  let limit = 100;
 
   while (tmp.length !== items.length) {
     if (!walk(traverseCallback(value.items || sample, path, resolve))) {

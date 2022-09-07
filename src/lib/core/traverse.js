@@ -15,7 +15,7 @@ function getMeta({ $comment: comment, title, description }) {
 }
 
 // TODO provide types
-function traverse(schema, path, resolve, rootSchema, validateSchema) {
+function traverse(schema, path, resolve, rootSchema) {
   schema = resolve(schema, null, path);
 
   if (schema && (schema.oneOf || schema.anyOf || schema.allOf)) {
@@ -36,42 +36,14 @@ function traverse(schema, path, resolve, rootSchema, validateSchema) {
     // example values have highest precedence
     if (optionAPI('useExamplesValue') && Array.isArray(schema.examples)) {
       // include `default` value as example too
-      const fixedExamples = schema.examples.concat(
-        'default' in schema ? [schema.default] : []);
-      const randomExample = random.pick(fixedExamples);
-      if (validateSchema) {
-        const result = validateSchema(schema, randomExample);
-        // Use example only if valid
-        if (result && result.length === 0) {
-          return {
-            value: utils.typecast(null, schema, () => randomExample),
-            context,
-          };
-        }
-      } else {
-        console.warn('Taking example from schema without validation');
-        return {
-          value: utils.typecast(null, schema, () => randomExample),
-          context,
-        };
-      }
+      const fixedExamples = schema.examples
+        .concat('default' in schema ? [schema.default] : []);
+
+      return { value: utils.typecast(null, schema, () => random.pick(fixedExamples)), context };
     }
     // If schema contains single example property
     if (optionAPI('useExamplesValue') && schema.example) {
-      if (validateSchema) {
-        const result = validateSchema(schema, schema.example);
-
-        // Use example only if valid
-        if (result && result.length === 0) {
-          return {
-            value: utils.typecast(null, schema, () => schema.example),
-            context,
-          };
-        }
-      } else {
-        console.warn('Taking example from schema without validation');
-        return { value: utils.typecast(null, schema, () => schema.example), context };
-      }
+      return { value: utils.typecast(null, schema, () => schema.example), context };
     }
 
     if (optionAPI('useDefaultValue') && 'default' in schema) {
@@ -94,7 +66,7 @@ function traverse(schema, path, resolve, rootSchema, validateSchema) {
 
     // build new object value from not-schema!
     if (schema.type && schema.type === 'object') {
-      const { value, context: innerContext } = traverse(schema, path.concat(['not']), resolve, rootSchema, validateSchema);
+      const { value, context: innerContext } = traverse(schema, path.concat(['not']), resolve, rootSchema);
       return { value: utils.clean(value, schema, false), context: { ...context, items: innerContext } };
     }
   }
@@ -102,7 +74,7 @@ function traverse(schema, path, resolve, rootSchema, validateSchema) {
   // thunks can return sub-schemas
   if (typeof schema.thunk === 'function') {
     // result is already cleaned in thunk
-    const { value, context: innerContext } = traverse(schema.thunk(rootSchema), path, resolve, undefined, validateSchema);
+    const { value, context: innerContext } = traverse(schema.thunk(rootSchema), path, resolve);
     return { value, context: { ...context, items: innerContext } };
   }
 
@@ -200,7 +172,7 @@ function traverse(schema, path, resolve, rootSchema, validateSchema) {
   Object.keys(schema).forEach(prop => {
     if (pruneProperties.includes(prop)) return;
     if (typeof schema[prop] === 'object' && prop !== 'definitions') {
-      const { value, context: innerContext } = traverse(schema[prop], path.concat([prop]), resolve, valueCopy, validateSchema);
+      const { value, context: innerContext } = traverse(schema[prop], path.concat([prop]), resolve, valueCopy);
       valueCopy[prop] = utils.clean(value, schema[prop], false);
       contextCopy[prop] = innerContext;
     } else {
