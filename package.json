@@ -129,6 +129,7 @@
   },
   "dependencies": {
     "json-schema-ref-parser": "^6.1.0",
-    "jsonpath-plus": "^5.1.0"
+    "jsonpath-plus": "^5.1.0",
+    "lodash": "4.17.21"
   }
 }

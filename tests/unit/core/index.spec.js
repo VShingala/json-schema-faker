@@ -56,5 +56,89 @@ describe('jsf generate', () => {
     jsf.option('useExamplesValue', true);
     expect(jsf.generate(schema, undefined, () => { return [{ error: 'some' }]; })).to.be.an('number');
   });
+  it('Take example with validation and validation options', () => {
+    const schema = {
+      type: 'string',
+      example: '/test/{{testId}}',
+    };
+    jsf.option('useExamplesValue', true);
+    jsf.option('validationOptions', { ignoreUnresolvedVariables: true });
+    expect(jsf.generate(schema, undefined, () => { return []; })).to.eql('/test/{{testId}}');
+  });
+  it('Take examples with validation and validation options', () => {
+    const schema = {
+      type: 'string',
+      examples: ['/test/{{testId}}', '/other/{{otherId}}'],
+    };
+    jsf.option('useExamplesValue', true);
+    jsf.option('validationOptions', { ignoreUnresolvedVariables: true });
+    expect(['/test/{{testId}}', '/other/{{otherId}}'])
+      .to.include(jsf.generate(schema, undefined, () => { return []; }));
+  });
+  it('Should generate a correct value considering min and max Items when type is array', () => {
+    const schema = {
+      type: 'array',
+      items: {
+        type: 'number',
+      },
+      example: [123],
+      minItems: 2,
+      maxItems: 2,
+    };
+    jsf.option('useExamplesValue', false);
+    const result = jsf.generate(schema, undefined, () => { return []; });
+    expect(result.length).to.be.equal(2);
+  });
+  it('Should ignore the provided example when its type is array and length is wrong independently of '
+    + 'useExamplesValue option set as true', () => {
+    const schema = {
+      type: 'array',
+      items: {
+        type: 'number',
+      },
+      example: [123],
+      minItems: 2,
+      maxItems: 2,
+    };
+    const validationMock = schemaToValidate => {
+      if (schemaToValidate.minItems) {
+        return [{ error: 'some' }];
+      }
+      return [];
+    };
+    jsf.option('useExamplesValue', true);
+    const result = jsf.generate(schema, undefined, validationMock);
+    expect(result.length).to.be.equal(2);
+  });
+  it('Should ignore minItem and maxItems properties from schema '
+    + 'when avoidExampleItemsLength and useExampleValue options are set to true', () => {
+    const schema = {
+      type: 'array',
+      items: {
+        type: 'number',
+      },
+      example: [123],
+      minItems: 2,
+      maxItems: 2,
+    };
+    jsf.option('useExamplesValue', true);
+    jsf.option('avoidExampleItemsLength', true);
+    const result = jsf.generate(schema, undefined, () => { return []; });
+    expect(result.length).to.be.equal(1);
+  });
+  it('Should use default value when useDefaultValue is true', () => {
+    const schema = {
+      type: 'array',
+      items: {
+        type: 'number',
+      },
+      default: [0, 1],
+    };
+    jsf.option('useExamplesValue', false);
+    jsf.option('useDefaultValue', true);
+    const result = jsf.generate(schema, undefined, () => { return []; });
+    expect(result.length).to.be.equal(2);
+    expect(result).has.members([0, 1]);
+  });
 });
 
