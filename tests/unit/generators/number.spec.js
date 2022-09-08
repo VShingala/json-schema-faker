@@ -27,6 +27,38 @@ describe('Number Generator', () => {
     expect(isMultipleOf({ multipleOf: 8, minimum: 80, maximum: 90 })).to.be.true;
   });
 
+  it('should return a number between 6 and 10 with exclusiveMinimum', () => {
+    expect(isMultipleOf({
+      exclusiveMinimum: true,
+      minimum: 5,
+      maximum: 10,
+    })).to.be.true;
+  });
+
+  it('should return 5 without exclusiveMinimum', () => {
+    expect(isMultipleOf({
+      minimum: 5,
+      maximum: 5,
+    })).to.be.true;
+  });
+
+  it('should return a number between 5 and 9 with exclusiveMaximum', () => {
+    expect(isMultipleOf({
+      exclusiveMaximum: true,
+      minimum: 5,
+      maximum: 10,
+    })).to.be.true;
+  });
+
+  it('should return a number between 6 and 10 with exclusiveMinimum', () => {
+    expect(isMultipleOf({
+      exclusiveMinimum: true,
+      minimum: 4,
+      maximum: 12,
+      multipleOf: 4,
+    })).to.be.true;
+  });
+
   describe('should ignore min and max if using Number.MAX_VALUE in then', () => {
     it('ignoring minimum', () => {
       const n = numberType({ minimum: -Number.MAX_VALUE });
