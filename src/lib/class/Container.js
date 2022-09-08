@@ -131,6 +131,9 @@ class Container {
         const gen = this.support[fn];
 
         if (typeof gen === 'function') {
+          if (typeof schema[fn] === 'object' && schema[fn].hasOwnProperty('type')) {// eslint-disable-line
+            continue;// eslint-disable-line
+          }
           Object.defineProperty(schema, 'generate', {
             configurable: false,
             enumerable: false,
