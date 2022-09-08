@@ -58,9 +58,6 @@ function objectType(value, path, resolve, traverseCallback) {
   let min = Math.max(value.minProperties || 0, requiredProperties.length);
   let neededExtras = Math.max(0, allProperties.length - min);
 
-  if (allProperties.length === 1 && !requiredProperties.length) {
-    min = Math.max(random.number(fillProps ? 1 : 0, max), min);
-  }
 
   if (optionalsProbability !== null) {
     if (fixedProbabilities === true) {
@@ -76,8 +73,7 @@ function objectType(value, path, resolve, traverseCallback) {
   });
 
   // properties are read from right-to-left
-  const _limit = optionalsProbability !== null || requiredProperties.length === max ? max : random.number(0, max);
-  const _props = requiredProperties.concat(random.shuffle(extraProperties).slice(0, _limit)).slice(0, max);
+  const _props = requiredProperties.concat(extraProperties).slice(0, max);
   const _defns = [];
 
   if (value.dependencies) {
