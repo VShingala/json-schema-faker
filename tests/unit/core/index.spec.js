@@ -110,7 +110,28 @@ describe('jsf generate', () => {
     const result = jsf.generate(schema, undefined, validationMock);
     expect(result.length).to.be.equal(2);
   });
-  it('Should ignore minItem and maxItems properties from schema '
+  it('Should ignore the provided examples when its type is array and length is wrong independently of '
+    + 'useExamplesValue option set as true', () => {
+    const schema = {
+      type: 'array',
+      items: {
+        type: 'number',
+      },
+      examples: [[123], [321]],
+      minItems: 2,
+      maxItems: 2,
+    };
+    const validationMock = schemaToValidate => {
+      if (schemaToValidate.minItems) {
+        return [{ error: 'some' }];
+      }
+      return [];
+    };
+    jsf.option('useExamplesValue', true);
+    const result = jsf.generate(schema, undefined, validationMock);
+    expect(result.length).to.be.equal(2);
+  });
+  it('Should ignore minItem and maxItems properties from schema (using example) '
     + 'when avoidExampleItemsLength and useExampleValue options are set to true', () => {
     const schema = {
       type: 'array',
@@ -125,6 +146,23 @@ describe('jsf generate', () => {
     jsf.option('avoidExampleItemsLength', true);
     const result = jsf.generate(schema, undefined, () => { return []; });
     expect(result.length).to.be.equal(1);
+  });
+  it('Should ignore minItem and maxItems properties from schema (using examples) '
+    + 'when avoidExampleItemsLength and useExampleValue options are set to true', () => {
+    const schema = {
+      type: 'array',
+      items: {
+        type: 'number',
+      },
+      examples: [[123], [321]],
+      minItems: 2,
+      maxItems: 2,
+    };
+    jsf.option('useExamplesValue', true);
+    jsf.option('avoidExampleItemsLength', true);
+    const result = jsf.generate(schema, undefined, () => { return []; });
+    expect(result.length).to.be.equal(1);
+    expect([123, 321].includes(result[0])).to.be.true;
   });
   it('Should use default value when useDefaultValue is true', () => {
     const schema = {
