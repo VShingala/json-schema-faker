@@ -88,27 +88,73 @@ function clampDateTime(value) {
   return `${year}-${month}-${day}T${hour}:${minute}:${second}.000Z`;
 }
 
+/**
+ * Calculates the previous multiple of the value in multipleOf starting in the max value
+ * @param min
+ * @param multipleOf
+ * @returns {number}
+ */
+function getPreviousMultiple(max, multipleOf) {
+  let res = max - 1;
+  while (res > -Number.MAX_VALUE) {
+    if (res % multipleOf === 0) {
+      return res;
+    }
+    res -= 1;
+  }
+  return res;
+}
+
+/**
+ * Calculates the next multiple of the value in multipleOf starting in the min value
+ * @param min
+ * @param multipleOf
+ * @returns {number}
+ */
+function getNextMultiple(min, multipleOf) {
+  let res = min + 1;
+  while (res < Number.MAX_VALUE) {
+    if (res % multipleOf === 0) {
+      return res;
+    }
+    res += 1;
+  }
+  return res;
+}
+
+/**
+ * Handles schemas with exclusive maximum as boolean or integer for 3.1
+ * @param schema
+ * @param in
+ * @returns {number}
+ */
 function handleExclusiveMaximum(schema, max) {
   max = _.has(schema, 'maximum') && schema.maximum !== Number.MAX_VALUE ? schema.maximum : max;
   if (_.has(schema, 'exclusiveMaximum')) {
     if (typeof schema.exclusiveMaximum === 'boolean' && schema.exclusiveMaximum === true) {
-      return schema.multipleOf ? max - schema.multipleOf : max - 1;
+      return schema.multipleOf ? getPreviousMultiple(max, schema.multipleOf) : max - 1;
     }
     if (typeof schema.exclusiveMaximum === 'number') {
-      return schema.multipleOf ? schema.exclusiveMaximum - schema.multipleOf : schema.exclusiveMaximum - 1;
+      return schema.multipleOf ? getPreviousMultiple(schema.exclusiveMaximum, schema.multipleOf) : schema.exclusiveMaximum - 1;
     }
   }
   return max;
 }
 
+/**
+ * Handles schemas with exclusive minimum as boolean or integer for 3.1
+ * @param schema
+ * @param in
+ * @returns {number}
+ */
  function handleExclusiveMinimum(schema, min) {
   min = _.has(schema, 'minimum') && schema.maximum !== -Number.MAX_VALUE ? schema.minimum : min;
   if (_.has(schema, 'exclusiveMinimum')) {
     if (typeof schema.exclusiveMinimum === 'boolean' && schema.exclusiveMinimum === true) {
-      return schema.multipleOf ? min + schema.multipleOf : min + 1;
+      return schema.multipleOf ? getNextMultiple(min, schema.multipleOf) : min + 1;
     }
     if (typeof schema.exclusiveMinimum === 'number') {
-      return schema.multipleOf ? schema.exclusiveMinimum + schema.multipleOf : schema.exclusiveMinimum + 1;
+      return schema.multipleOf ? getNextMultiple(schema.exclusiveMinimum, schema.multipleOf) : schema.exclusiveMinimum + 1;
     }
   }
   return min;
@@ -532,4 +578,6 @@ export default {
   clampDate,
   handleExclusiveMaximum,
   handleExclusiveMinimum,
+  getPreviousMultiple,
+  getNextMultiple,
 };
