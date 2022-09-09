@@ -83,7 +83,7 @@ function resolve(obj, data, values, property) {
 }
 
 // TODO provide types?
-function run(refs, schema, container, synchronous) {
+function run(refs, schema, container, synchronous, validateSchema) {
   if (Object.prototype.toString.call(schema) !== '[object Object]') {
     throw new Error(`Invalid input, expecting object but given ${typeof schema}`);
   }
@@ -100,7 +100,7 @@ function run(refs, schema, container, synchronous) {
       refDepthMin,
       refDepthMax,
     });
-    const result = traverse(utils.clone(schema), [], resolveSchema);
+    const result = traverse(utils.clone(schema), [], resolveSchema, undefined, validateSchema);
 
     if (optionAPI('resolveJsonPath')) {
       return {
