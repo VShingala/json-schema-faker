@@ -55,7 +55,6 @@
           "minimum": 80,
           "maximum": 90,
           "multipleOf": 8,
-          "exclusiveMinimum": true,
           "exclusiveMaximum": true
         },
         "hasNot": ".",
