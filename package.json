@@ -21,7 +21,7 @@
     "test:schema": "npm run test:run tests/schema --",
     "test:integration": "npm run test:run tests/integration --",
     "coverage": "nyc --es-modules -x '**/tests/**' -x '**/*.spec.js'",
-    "coverage:all": "npm run coverage -- npm run test:all",
+    "coverage:all": "npm run coverage -- npm run test:unit && npm run test:integration && npm run test:schema",
     "coverage:unit": "npm run coverage -- npm run test:unit",
     "report": "nyc report",
     "lint": "eslint --ext js,svelte src tests",
