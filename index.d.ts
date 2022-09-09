@@ -15,6 +15,7 @@ export interface JSONSchemaFakerOptions {
   optionalsProbability?: number | false;
   fixedProbabilities?: boolean;
   useExamplesValue?: boolean;
+  avoidExampleItemsLength?: boolean;
   useDefaultValue?: boolean;
   requiredOnly?: boolean;
   minItems?: number;
@@ -31,6 +32,7 @@ export interface JSONSchemaFakerOptions {
   renderComment?: boolean;
   refDepthMax?: number;
   refDepthMin?: number;
+  validationOptions?: object;
 }
 
 export type JSONSchemaFakerRefs = Schema[] | { [k: string]: Schema };
