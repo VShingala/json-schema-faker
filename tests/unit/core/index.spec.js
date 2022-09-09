@@ -146,6 +146,7 @@ describe('jsf generate', () => {
     jsf.option('avoidExampleItemsLength', true);
     const result = jsf.generate(schema, undefined, () => { return []; });
     expect(result.length).to.be.equal(1);
+    expect(result[0]).to.be.equal(123);
   });
   it('Should ignore minItem and maxItems properties from schema (using examples) '
     + 'when avoidExampleItemsLength and useExampleValue options are set to true', () => {
@@ -178,5 +179,30 @@ describe('jsf generate', () => {
     expect(result.length).to.be.equal(2);
     expect(result).has.members([0, 1]);
   });
-});
 
+  it('Should not use actual property named "default" as faked value', function () {
+    const schema = {
+      type: 'object',
+      properties: {
+        default: {
+          type: 'string',
+          example: 'This is actual property and not JSON schema defined "default" keyword',
+        },
+      },
+    };
+    jsf.option({
+      requiredOnly: false,
+      optionalsProbability: 1.0, // always add optional fields
+      maxLength: 256,
+      useDefaultValue: true,
+      useExamplesValue: true,
+      ignoreMissingRefs: true,
+      avoidExampleItemsLength: false, // option to avoid validating type array schema example's minItems and maxItems props.
+    });
+
+    const fakedData = jsf.generate(schema);
+    expect(fakedData).to.deep.equal({
+      default: 'This is actual property and not JSON schema defined "default" keyword',
+    });
+  });
+});
