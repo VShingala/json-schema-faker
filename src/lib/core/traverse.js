@@ -1,9 +1,11 @@
+import _ from 'lodash';
 import utils from './utils';
 import random from './random';
 import ParseError from './error';
 import inferType from './infer';
 import types from '../types/index';
 import optionAPI from '../api/option';
+import ALL_TYPES from './constants';
 
 function getMeta({ $comment: comment, title, description }) {
   return Object.entries({ comment, title, description })
@@ -40,7 +42,20 @@ function traverse(schema, path, resolve, rootSchema, validateSchema) {
         'default' in schema ? [schema.default] : []);
       const randomExample = random.pick(fixedExamples);
       if (validateSchema) {
-        const result = validateSchema(schema, randomExample);
+        let result;
+        let clonedSchema;
+
+        // avoid minItems and maxItems while checking for valid examples
+        if (optionAPI('avoidExampleItemsLength') && _.get(schema, 'type') === 'array') {
+          clonedSchema = _.clone(schema);
+          _.unset(clonedSchema, 'minItems');
+          _.unset(clonedSchema, 'maxItems');
+
+          result = validateSchema(clonedSchema, randomExample, optionAPI('validationOptions'));
+        } else {
+          result = validateSchema(schema, randomExample, optionAPI('validationOptions'));
+        }
+
         // Use example only if valid
         if (result && result.length === 0) {
           return {
@@ -59,7 +74,19 @@ function traverse(schema, path, resolve, rootSchema, validateSchema) {
     // If schema contains single example property
     if (optionAPI('useExamplesValue') && schema.example) {
       if (validateSchema) {
-        const result = validateSchema(schema, schema.example);
+        let result;
+        let clonedSchema;
+
+        // avoid minItems and maxItems while checking for valid examples
+        if (optionAPI('avoidExampleItemsLength') && _.get(schema, 'type') === 'array') {
+          clonedSchema = _.clone(schema);
+          _.unset(clonedSchema, 'minItems');
+          _.unset(clonedSchema, 'maxItems');
+
+          result = validateSchema(clonedSchema, schema.example, optionAPI('validationOptions'));
+        } else {
+          result = validateSchema(schema, schema.example, optionAPI('validationOptions'));
+        }
 
         // Use example only if valid
         if (result && result.length === 0) {
@@ -74,9 +101,13 @@ function traverse(schema, path, resolve, rootSchema, validateSchema) {
       }
     }
 
+    // use default as faked value if found as keyword in schema
     if (optionAPI('useDefaultValue') && 'default' in schema) {
-      if (schema.default !== '' || !optionAPI('replaceEmptyByRandomValue')) {
-        return { value: schema.default, context };
+      // to not use default as faked value in case it is actual property of schema
+      if (!(_.has(schema.default, 'type') && _.includes(ALL_TYPES, schema.default.type))) {
+        if (schema.default !== '' || !optionAPI('replaceEmptyByRandomValue')) {
+          return { value: schema.default, context };
+        }
       }
     }
 
