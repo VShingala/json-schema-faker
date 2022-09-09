@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 
-import jsf from '../../src/main.esm';
+import jsf from '../../dist/main.esm.js';
 
 global.$RefParser = require('json-schema-ref-parser');
 

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 
 describe('CommonJS', () => {
   it('should works as expected', () => {
-    const jsf = require('../../src/main.cjs').default;
+    const jsf = require('../../dist/main.cjs.js').default;
 
     expect(jsf).not.to.be.undefined;
     // expect(jsf.VERSION).not.to.be.undefined;
