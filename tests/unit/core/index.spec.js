@@ -181,7 +181,7 @@ describe('jsf generate', () => {
     expect(result).has.members([0, 1]);
   });
 
-  // it('Should not use actual property named "default" as faked value', function () {
+  // it('Should not use actual property named "default" as faked value', () => {
   //   const schema = {
   //     type: 'object',
   //     properties: {
