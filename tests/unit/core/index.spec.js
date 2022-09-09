@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 import jsf from '../../../src/lib';
 
 describe('jsf generate', () => {
@@ -56,6 +56,7 @@ describe('jsf generate', () => {
     jsf.option('useExamplesValue', true);
     expect(jsf.generate(schema, undefined, () => { return [{ error: 'some' }]; })).to.be.an('number');
   });
+
   it('Take example with validation and validation options', () => {
     const schema = {
       type: 'string',
@@ -205,4 +206,21 @@ describe('jsf generate', () => {
   //     default: 'This is actual property and not JSON schema defined "default" keyword',
   //   });
   // });
+  it('Generate with property called pattern', () => {
+    const schema = {
+      required: [
+        'id',
+      ],
+      properties: {
+        id: {
+          type: 'integer',
+          format: 'int64',
+        },
+        pattern: {
+          type: 'string',
+        },
+      },
+    };
+    assert.property(jsf.generate(schema), 'pattern');
+  });
 });
