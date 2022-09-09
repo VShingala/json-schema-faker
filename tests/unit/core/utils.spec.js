@@ -563,4 +563,25 @@ describe('Utils', () => {
       expect(res % 2).to.equal(0);
     });
   });
+
+  describe('getPreviousMultiple method', () => {
+    it('should return 88 when max is 90 and multipleOf is 8', () => {
+      const result = utils.getPreviousMultiple(90, 8);
+      expect(result).to.equal(88);
+    });
+    it('should return -8 when max is 0 and multipleOf is 8', () => {
+      const result = utils.getPreviousMultiple(0, 8);
+      expect(result).to.equal(-8);
+    });
+  });
+  describe('getNextMultiple method', () => {
+    it('should return 88 when min is 80 and multipleOf is 8', () => {
+      const result = utils.getNextMultiple(80, 8);
+      expect(result).to.equal(88);
+    });
+    it('should return 8 when min is 0 and multipleOf is 8', () => {
+      const result = utils.getNextMultiple(0, 8);
+      expect(result).to.equal(8);
+    });
+  });
 });
