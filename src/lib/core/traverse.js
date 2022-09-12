@@ -78,7 +78,7 @@ function traverse(schema, path, resolve, rootSchema, validateSchema) {
       }
     }
     // If schema contains single example property
-    if (optionAPI('useExamplesValue') && schema.example) {
+    if (optionAPI('useExamplesValue') && !_.isNil(schema.example)) {
       if (validateSchema) {
         let result;
         let clonedSchema;
