@@ -2,6 +2,7 @@
   "description": "repeated properties between oneOf sub schemas",
   "tests": [
     {
+      "skip": true,
       "description": "should not skip required properties",
       "schema": {
         "$schema": "http://json-schema.org/draft-06/schema#",

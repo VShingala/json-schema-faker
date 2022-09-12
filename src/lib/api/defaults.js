@@ -13,7 +13,7 @@ defaults.failOnInvalidFormat = true;
 
 defaults.alwaysFakeOptionals = false;
 defaults.optionalsProbability = null;
-defaults.fixedProbabilities = false;
+defaults.fixedProbabilities = true;
 defaults.useExamplesValue = false;
 defaults.avoidExampleItemsLength = false;
 defaults.useDefaultValue = false;

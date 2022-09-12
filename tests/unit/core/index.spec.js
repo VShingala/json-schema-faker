@@ -181,31 +181,31 @@ describe('jsf generate', () => {
     expect(result).has.members([0, 1]);
   });
 
-  // it('Should not use actual property named "default" as faked value', () => {
-  //   const schema = {
-  //     type: 'object',
-  //     properties: {
-  //       default: {
-  //         type: 'string',
-  //         example: 'This is actual property and not JSON schema defined "default" keyword',
-  //       },
-  //     },
-  //   };
-  //   jsf.option({
-  //     requiredOnly: false,
-  //     optionalsProbability: 1.0, // always add optional fields
-  //     maxLength: 256,
-  //     useDefaultValue: true,
-  //     useExamplesValue: true,
-  //     ignoreMissingRefs: true,
-  //     avoidExampleItemsLength: false, // option to avoid validating type array schema example's minItems and maxItems props.
-  //   });
+  it('Should not use actual property named "default" as faked value', () => {
+    const schema = {
+      type: 'object',
+      properties: {
+        default: {
+          type: 'string',
+          example: 'This is actual property and not JSON schema defined "default" keyword',
+        },
+      },
+    };
+    jsf.option({
+      requiredOnly: false,
+      optionalsProbability: 1.0, // always add optional fields
+      maxLength: 256,
+      useDefaultValue: true,
+      useExamplesValue: true,
+      ignoreMissingRefs: true,
+      avoidExampleItemsLength: false, // option to avoid validating type array schema example's minItems and maxItems props.
+    });
 
-  //   const fakedData = jsf.generate(schema);
-  //   expect(fakedData).to.deep.equal({
-  //     default: 'This is actual property and not JSON schema defined "default" keyword',
-  //   });
-  // });
+    const fakedData = jsf.generate(schema);
+    expect(fakedData).to.deep.equal({
+      default: 'This is actual property and not JSON schema defined "default" keyword',
+    });
+  });
   it('Generate with property called pattern', () => {
     const schema = {
       required: [
