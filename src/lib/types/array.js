@@ -4,7 +4,7 @@ import ParseError from '../core/error';
 import optionAPI from '../api/option';
 
 // TODO provide types
-function unique(path, items, value, sample, resolve, traverseCallback) {
+function unique(path, items, value, sample, resolve, validateSchema, traverseCallback) {
   const tmp = [];
   const seen = [];
 
@@ -27,7 +27,7 @@ function unique(path, items, value, sample, resolve, traverseCallback) {
   let limit = 10;
 
   while (tmp.length !== items.length) {
-    if (!walk(traverseCallback(value.items || sample, path, resolve))) {
+    if (!walk(traverseCallback(value.items || sample, path, resolve, undefined, validateSchema))) {
       limit -= 1;
     }
 
@@ -40,7 +40,7 @@ function unique(path, items, value, sample, resolve, traverseCallback) {
 }
 
 // TODO provide types
-function arrayType(value, path, resolve, traverseCallback) {
+function arrayType(value, path, resolve, validateSchema, traverseCallback) {
   const items = [];
 
   if (!(value.items || value.additionalItems)) {
@@ -54,7 +54,7 @@ function arrayType(value, path, resolve, traverseCallback) {
     return value.items.map((item, key) => {
       const itemSubpath = path.concat(['items', key]);
 
-      return traverseCallback(item, itemSubpath, resolve);
+      return traverseCallback(item, itemSubpath, resolve, undefined, validateSchema);
     });
   }
 
@@ -103,7 +103,7 @@ function arrayType(value, path, resolve, traverseCallback) {
 
   for (let current = items.length; current < length; current += 1) {
     const itemSubpath = path.concat(['items', current]);
-    const element = traverseCallback(value.items || sample, itemSubpath, resolve);
+    const element = traverseCallback(value.items || sample, itemSubpath, resolve, undefined, validateSchema);
 
     items.push(element);
   }
@@ -111,11 +111,11 @@ function arrayType(value, path, resolve, traverseCallback) {
   if (value.contains && length > 0) {
     const idx = random.number(0, length - 1);
 
-    items[idx] = traverseCallback(value.contains, path.concat(['items', idx]), resolve);
+    items[idx] = traverseCallback(value.contains, path.concat(['items', idx]), resolve, undefined, validateSchema);
   }
 
   if (value.uniqueItems) {
-    return unique(path.concat(['items']), items, value, sample, resolve, traverseCallback);
+    return unique(path.concat(['items']), items, value, sample, resolve, validateSchema, traverseCallback);
   }
 
   return items;

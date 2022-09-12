@@ -58,6 +58,12 @@ function traverse(schema, path, resolve, rootSchema, validateSchema) {
 
         // Use example only if valid
         if (result && result.length === 0) {
+          if (optionAPI('validationOptions') && optionAPI('validationOptions').ignoreUnresolvedVariables) {
+            return {
+              value: randomExample,
+              context,
+            };
+          }
           return {
             value: utils.typecast(null, schema, () => randomExample),
             context,
@@ -90,6 +96,12 @@ function traverse(schema, path, resolve, rootSchema, validateSchema) {
 
         // Use example only if valid
         if (result && result.length === 0) {
+          if (optionAPI('validationOptions') && optionAPI('validationOptions').ignoreUnresolvedVariables) {
+            return {
+              value: schema.example,
+              context,
+            };
+          }
           return {
             value: utils.typecast(null, schema, () => schema.example),
             context,
@@ -189,7 +201,7 @@ function traverse(schema, path, resolve, rootSchema, validateSchema) {
       }
     } else {
       try {
-        const innerResult = types[type](schema, path, resolve, traverse);
+        const innerResult = types[type](schema, path, resolve, validateSchema, traverse);
         if (type === 'array') {
           return {
             value: innerResult.map(({ value }) => value),
