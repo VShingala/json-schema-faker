@@ -36,3 +36,4 @@ defaults.renderDescription = true;
 defaults.renderComment = false;
 
 defaults.validationOptions = {};
+defaults.pickFirstFromExamples = false;
