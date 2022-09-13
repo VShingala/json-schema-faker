@@ -1,9 +1,11 @@
+import _ from 'lodash';
 import utils from './utils';
 import random from './random';
 import ParseError from './error';
 import inferType from './infer';
 import types from '../types/index';
 import optionAPI from '../api/option';
+import ALL_TYPES from './constants';
 
 function getMeta({ $comment: comment, title, description }) {
   return Object.entries({ comment, title, description })
@@ -15,7 +17,7 @@ function getMeta({ $comment: comment, title, description }) {
 }
 
 // TODO provide types
-function traverse(schema, path, resolve, rootSchema) {
+function traverse(schema, path, resolve, rootSchema, validateSchema) {
   schema = resolve(schema, null, path);
 
   if (schema && (schema.oneOf || schema.anyOf || schema.allOf)) {
@@ -23,7 +25,7 @@ function traverse(schema, path, resolve, rootSchema) {
   }
 
   if (!schema) {
-    return;
+    throw new Error(`Cannot traverse at '${path.join('.')}', given '${JSON.stringify(rootSchema)}'`);
   }
 
   const context = {
@@ -36,19 +38,93 @@ function traverse(schema, path, resolve, rootSchema) {
     // example values have highest precedence
     if (optionAPI('useExamplesValue') && Array.isArray(schema.examples)) {
       // include `default` value as example too
-      const fixedExamples = schema.examples
-        .concat('default' in schema ? [schema.default] : []);
+      let randomExample;
+      const fixedExamples = schema.examples.concat(
+        'default' in schema ? [schema.default] : []);
+        if (optionAPI('pickFirstFromExamples')) {
+          randomExample = fixedExamples[0];
+        } else {
+           randomExample = random.pick(fixedExamples);
+        }
+      if (validateSchema) {
+        let result;
+        let clonedSchema;
 
-      return { value: utils.typecast(null, schema, () => random.pick(fixedExamples)), context };
+        // avoid minItems and maxItems while checking for valid examples
+        if (optionAPI('avoidExampleItemsLength') && _.get(schema, 'type') === 'array') {
+          clonedSchema = _.clone(schema);
+          _.unset(clonedSchema, 'minItems');
+          _.unset(clonedSchema, 'maxItems');
+
+          result = validateSchema(clonedSchema, randomExample, optionAPI('validationOptions'));
+        } else {
+          result = validateSchema(schema, randomExample, optionAPI('validationOptions'));
+        }
+
+        // Use example only if valid
+        if (result && result.length === 0) {
+          if (optionAPI('validationOptions') && optionAPI('validationOptions').ignoreUnresolvedVariables) {
+            return {
+              value: randomExample,
+              context,
+            };
+          }
+          return {
+            value: utils.typecast(null, schema, () => randomExample),
+            context,
+          };
+        }
+      } else {
+        console.warn('Taking example from schema without validation');
+        return {
+          value: utils.typecast(null, schema, () => randomExample),
+          context,
+        };
+      }
     }
     // If schema contains single example property
-    if (optionAPI('useExamplesValue') && schema.example) {
-      return { value: utils.typecast(null, schema, () => schema.example), context };
+    if (optionAPI('useExamplesValue') && !_.isNil(schema.example)) {
+      if (validateSchema) {
+        let result;
+        let clonedSchema;
+
+        // avoid minItems and maxItems while checking for valid examples
+        if (optionAPI('avoidExampleItemsLength') && _.get(schema, 'type') === 'array') {
+          clonedSchema = _.clone(schema);
+          _.unset(clonedSchema, 'minItems');
+          _.unset(clonedSchema, 'maxItems');
+
+          result = validateSchema(clonedSchema, schema.example, optionAPI('validationOptions'));
+        } else {
+          result = validateSchema(schema, schema.example, optionAPI('validationOptions'));
+        }
+
+        // Use example only if valid
+        if (result && result.length === 0) {
+          if (optionAPI('validationOptions') && optionAPI('validationOptions').ignoreUnresolvedVariables) {
+            return {
+              value: schema.example,
+              context,
+            };
+          }
+          return {
+            value: utils.typecast(null, schema, () => schema.example),
+            context,
+          };
+        }
+      } else {
+        console.warn('Taking example from schema without validation');
+        return { value: utils.typecast(null, schema, () => schema.example), context };
+      }
     }
 
+    // use default as faked value if found as keyword in schema
     if (optionAPI('useDefaultValue') && 'default' in schema) {
-      if (schema.default !== '' || !optionAPI('replaceEmptyByRandomValue')) {
-        return { value: schema.default, context };
+      // to not use default as faked value in case it is actual property of schema
+      if (!(_.has(schema.default, 'type') && _.includes(ALL_TYPES, schema.default.type))) {
+        if (schema.default !== '' || !optionAPI('replaceEmptyByRandomValue')) {
+          return { value: schema.default, context };
+        }
       }
     }
 
@@ -66,7 +142,7 @@ function traverse(schema, path, resolve, rootSchema) {
 
     // build new object value from not-schema!
     if (schema.type && schema.type === 'object') {
-      const { value, context: innerContext } = traverse(schema, path.concat(['not']), resolve, rootSchema);
+      const { value, context: innerContext } = traverse(schema, path.concat(['not']), resolve, rootSchema, validateSchema);
       return { value: utils.clean(value, schema, false), context: { ...context, items: innerContext } };
     }
   }
@@ -74,7 +150,7 @@ function traverse(schema, path, resolve, rootSchema) {
   // thunks can return sub-schemas
   if (typeof schema.thunk === 'function') {
     // result is already cleaned in thunk
-    const { value, context: innerContext } = traverse(schema.thunk(rootSchema), path, resolve);
+    const { value, context: innerContext } = traverse(schema.thunk(rootSchema), path, resolve, undefined, validateSchema);
     return { value, context: { ...context, items: innerContext } };
   }
 
@@ -130,7 +206,7 @@ function traverse(schema, path, resolve, rootSchema) {
       }
     } else {
       try {
-        const innerResult = types[type](schema, path, resolve, traverse);
+        const innerResult = types[type](schema, path, resolve, validateSchema, traverse);
         if (type === 'array') {
           return {
             value: innerResult.map(({ value }) => value),
@@ -172,7 +248,7 @@ function traverse(schema, path, resolve, rootSchema) {
   Object.keys(schema).forEach(prop => {
     if (pruneProperties.includes(prop)) return;
     if (typeof schema[prop] === 'object' && prop !== 'definitions') {
-      const { value, context: innerContext } = traverse(schema[prop], path.concat([prop]), resolve, valueCopy);
+      const { value, context: innerContext } = traverse(schema[prop], path.concat([prop]), resolve, valueCopy, validateSchema);
       valueCopy[prop] = utils.clean(value, schema[prop], false);
       contextCopy[prop] = innerContext;
     } else {

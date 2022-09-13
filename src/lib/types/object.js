@@ -8,7 +8,7 @@ import optionAPI from '../api/option';
 const anyType = { type: constants.ALLOWED_TYPES };
 
 // TODO provide types
-function objectType(value, path, resolve, traverseCallback) {
+function objectType(value, path, resolve, validateSchema, traverseCallback) {
   const props = {};
 
   const properties = value.properties || {};
@@ -44,7 +44,7 @@ function objectType(value, path, resolve, traverseCallback) {
       }
     });
 
-    return traverseCallback(props, path.concat(['properties']), resolve, value);
+    return traverseCallback(props, path.concat(['properties']), resolve, value, validateSchema);
   }
 
   const optionalsProbability = optionAPI('alwaysFakeOptionals') === true ? 1.0 : optionAPI('optionalsProbability');
@@ -58,9 +58,6 @@ function objectType(value, path, resolve, traverseCallback) {
   let min = Math.max(value.minProperties || 0, requiredProperties.length);
   let neededExtras = Math.max(0, allProperties.length - min);
 
-  if (allProperties.length === 1 && !requiredProperties.length) {
-    min = Math.max(random.number(fillProps ? 1 : 0, max), min);
-  }
 
   if (optionalsProbability !== null) {
     if (fixedProbabilities === true) {
@@ -76,8 +73,7 @@ function objectType(value, path, resolve, traverseCallback) {
   });
 
   // properties are read from right-to-left
-  const _limit = optionalsProbability !== null || requiredProperties.length === max ? max : random.number(0, max);
-  const _props = requiredProperties.concat(random.shuffle(extraProperties).slice(0, _limit)).slice(0, max);
+  const _props = requiredProperties.concat(extraProperties).slice(0, max);
   const _defns = [];
 
   if (value.dependencies) {
@@ -104,7 +100,7 @@ function objectType(value, path, resolve, traverseCallback) {
 
       return traverseCallback({
         allOf: _defns.concat(value),
-      }, path.concat(['properties']), resolve, value);
+      }, path.concat(['properties']), resolve, value, validateSchema);
     }
   }
 
@@ -257,7 +253,7 @@ function objectType(value, path, resolve, traverseCallback) {
     }
   }
 
-  return traverseCallback(props, path.concat(['properties']), resolve, value);
+  return traverseCallback(props, path.concat(['properties']), resolve, value, validateSchema);
 }
 
 export default objectType;

@@ -1,6 +1,8 @@
+import _ from 'lodash';
 import optionAPI from '../api/option';
 import env from './constants';
 import random from './random';
+
 
 function getLocalRef(obj, path, refs) {
   if (refs && refs[path]) return clone(refs[path]); // eslint-disable-line
@@ -87,6 +89,79 @@ function clampDateTime(value) {
 }
 
 /**
+ * Calculates the previous multiple of the value in multipleOf starting in the max value
+ * @param min
+ * @param multipleOf
+ * @returns {number}
+ */
+function getPreviousMultiple(max, multipleOf) {
+  let res = max - 1;
+  while (res > -Number.MAX_VALUE) {
+    if (res % multipleOf === 0) {
+      return res;
+    }
+    res -= 1;
+  }
+  return res;
+}
+
+/**
+ * Calculates the next multiple of the value in multipleOf starting in the min value
+ * @param min
+ * @param multipleOf
+ * @returns {number}
+ */
+function getNextMultiple(min, multipleOf) {
+  let res = min + 1;
+  while (res < Number.MAX_VALUE) {
+    if (res % multipleOf === 0) {
+      return res;
+    }
+    res += 1;
+  }
+  return res;
+}
+
+/**
+ * Handles schemas with exclusive maximum as boolean or integer for 3.1
+ * @param schema
+ * @param in
+ * @returns {number}
+ */
+function handleExclusiveMaximum(schema, max) {
+  max = _.has(schema, 'maximum') && schema.maximum !== Number.MAX_VALUE ? schema.maximum : max;
+  if (_.has(schema, 'exclusiveMaximum')) {
+    if (typeof schema.exclusiveMaximum === 'boolean' && schema.exclusiveMaximum === true) {
+      return schema.multipleOf ? getPreviousMultiple(max, schema.multipleOf) : max - 1;
+    }
+    if (typeof schema.exclusiveMaximum === 'number') {
+      return schema.multipleOf ? getPreviousMultiple(schema.exclusiveMaximum, schema.multipleOf) : schema.exclusiveMaximum - 1;
+    }
+  }
+  return max;
+}
+
+/**
+ * Handles schemas with exclusive minimum as boolean or integer for 3.1
+ * @param schema
+ * @param in
+ * @returns {number}
+ */
+ function handleExclusiveMinimum(schema, min) {
+  min = _.has(schema, 'minimum') && schema.maximum !== -Number.MAX_VALUE ? schema.minimum : min;
+  if (_.has(schema, 'exclusiveMinimum')) {
+    if (typeof schema.exclusiveMinimum === 'boolean' && schema.exclusiveMinimum === true) {
+      return schema.multipleOf ? getNextMultiple(min, schema.multipleOf) : min + 1;
+    }
+    if (typeof schema.exclusiveMinimum === 'number') {
+      return schema.multipleOf ? getNextMultiple(schema.exclusiveMinimum, schema.multipleOf) : schema.exclusiveMinimum + 1;
+    }
+  }
+  return min;
+}
+
+
+/**
  * Returns typecasted value.
  * External generators (faker, chance, casual) may return data in non-expected formats, such as string, when you might expect an
  * integer. This function is used to force the typecast. This is the base formatter for all result values.
@@ -115,13 +190,8 @@ function typecast(type, schema, callback) {
         let min = Math.max(params.minimum || 0, 0);
         let max = Math.min(params.maximum || Infinity, Infinity);
 
-        if (schema.exclusiveMinimum && min === schema.minimum) {
-          min += schema.multipleOf || 1;
-        }
-
-        if (schema.exclusiveMaximum && max === schema.maximum) {
-          max -= schema.multipleOf || 1;
-        }
+        min = handleExclusiveMinimum(schema, min);
+        max = handleExclusiveMaximum(schema, max);
 
         // discard out-of-bounds enumerations
         if (min || max !== Infinity) {
@@ -413,7 +483,7 @@ function template(value, schema) {
   }
 
   if (typeof value === 'string') {
-    value = value.replace(/#\{([\w.-]+)\}/g, (_, $1) => schema[$1]);
+    value = value.replace(/#\{([\w.-]+)\}/g, (x, $1) => schema[$1]);
   }
 
   return value;
@@ -506,4 +576,8 @@ export default {
   clean,
   isEmpty,
   clampDate,
+  handleExclusiveMaximum,
+  handleExclusiveMinimum,
+  getPreviousMultiple,
+  getNextMultiple,
 };

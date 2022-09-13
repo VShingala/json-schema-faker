@@ -13,8 +13,9 @@ defaults.failOnInvalidFormat = true;
 
 defaults.alwaysFakeOptionals = false;
 defaults.optionalsProbability = null;
-defaults.fixedProbabilities = false;
+defaults.fixedProbabilities = true;
 defaults.useExamplesValue = false;
+defaults.avoidExampleItemsLength = false;
 defaults.useDefaultValue = false;
 defaults.requiredOnly = false;
 
@@ -33,3 +34,6 @@ defaults.random = Math.random;
 defaults.renderTitle = true;
 defaults.renderDescription = true;
 defaults.renderComment = false;
+
+defaults.validationOptions = {};
+defaults.pickFirstFromExamples = false;

@@ -1,5 +1,6 @@
 import random from '../core/random';
 import env from '../core/constants';
+import utils from '../core/utils';
 
 function numberType(value) {
   let min = (typeof value.minimum === 'undefined' || value.minimum === -Number.MAX_VALUE) ? env.MIN_INTEGER : value.minimum;
@@ -25,13 +26,8 @@ function numberType(value) {
     min = Math.ceil(min / multipleOf) * multipleOf;
   }
 
-  if (value.exclusiveMinimum && min === value.minimum) {
-    min += multipleOf || 1;
-  }
-
-  if (value.exclusiveMaximum && max === value.maximum) {
-    max -= multipleOf || 1;
-  }
+  min = utils.handleExclusiveMinimum(value, min);
+  max = utils.handleExclusiveMaximum(value, max);
 
   if (min > max) {
     return NaN;

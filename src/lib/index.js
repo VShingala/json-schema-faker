@@ -93,18 +93,18 @@ const jsf = (schema, refs, cwd) => {
   return jsf.generate(schema, refs);
 };
 
-jsf.generateWithContext = (schema, refs) => {
+jsf.generateWithContext = (schema, refs, validateSchema) => {
   const $refs = getRefs(refs, schema);
 
-  return run($refs, schema, container, true);
+  return run($refs, schema, container, true, validateSchema);
 };
 
-jsf.generate = (schema, refs) => renderJS(
-    jsf.generateWithContext(schema, refs),
+jsf.generate = (schema, refs, validateSchema) => renderJS(
+    jsf.generateWithContext(schema, refs, validateSchema),
   );
 
-jsf.generateYAML = (schema, refs) => renderYAML(
-    jsf.generateWithContext(schema, refs),
+jsf.generateYAML = (schema, refs, validateSchema) => renderYAML(
+    jsf.generateWithContext(schema, refs, validateSchema),
   );
 
 jsf.resolveWithContext = (schema, refs, cwd) => {

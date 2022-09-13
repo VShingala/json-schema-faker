@@ -513,4 +513,75 @@ describe('Utils', () => {
       expect(cleaned).to.eql({ b: {}, c: { d: 'string value' } });
     });
   });
+
+  describe('handleExclusiveMaximum function', () => {
+    it('should return same value if not passed an object', () => {
+      expect(utils.handleExclusiveMaximum({}, 5)).to.eql(5);
+    });
+    it('should return a value excluding the maximum', () => {
+      expect(utils.handleExclusiveMaximum({ exclusiveMaximum: true, minimum: 1, maximum: 2 })).to.eql(1);
+    });
+    it('should return a value not excluding the maximum', () => {
+      expect(utils.handleExclusiveMaximum({ exclusiveMaximum: false, minimum: 1, maximum: 1 })).to.eql(1);
+    });
+    it('should return a value excluding the maximum', () => {
+      expect(utils.handleExclusiveMaximum({ exclusiveMaximum: 10, minimum: 1 }, 1000)).to.be.lessThan(10);
+    });
+    it('should return a value excluding the maximum with a number and using multipleOf', () => {
+      const res = utils.handleExclusiveMaximum({ exclusiveMaximum: 10, minimum: 1, multipleOf: 2 }, 1000);
+      expect(res).to.be.lessThan(10);
+      expect(res % 2).to.equal(0);
+    });
+    it('should return a value excluding the maximum with boolean and using multipleOf', () => {
+      const res = utils.handleExclusiveMaximum({ exclusiveMaximum: true, minimum: 1, maximum: 10, multipleOf: 2 }, 1000);
+      expect(res).to.be.lessThan(10);
+      expect(res % 2).to.equal(0);
+    });
+  });
+
+  describe('handleExclusiveMinimum function', () => {
+    it('should return same value if not passed an object', () => {
+      expect(utils.handleExclusiveMinimum({}, 5)).to.eql(5);
+    });
+    it('should return a value excluding the maximum', () => {
+      expect(utils.handleExclusiveMinimum({ exclusiveMinimum: true, minimum: 1, maximum: 2 })).to.eql(2);
+    });
+    it('should return a value not excluding the maximum', () => {
+      expect(utils.handleExclusiveMinimum({ exclusiveMinimum: false, minimum: 1, maximum: 1 })).to.eql(1);
+    });
+    it('should return a value excluding the maximum', () => {
+      expect(utils.handleExclusiveMinimum({ exclusiveMinimum: 10, maximum: 11 }, 1000)).to.be.greaterThan(10);
+    });
+    it('should return a value excluding the maximum with a number and using multipleOf', () => {
+      const res = utils.handleExclusiveMinimum({ exclusiveMinimum: 10, maximum: 14, multipleOf: 2 }, 1000);
+      expect(res).to.be.greaterThan(10);
+      expect(res % 2).to.equal(0);
+    });
+    it('should return a value excluding the maximum with boolean and using multipleOf', () => {
+      const res = utils.handleExclusiveMinimum({ exclusiveMinimum: true, minimum: 10, maximum: 14, multipleOf: 2 }, 1000);
+      expect(res).to.be.greaterThan(10);
+      expect(res % 2).to.equal(0);
+    });
+  });
+
+  describe('getPreviousMultiple method', () => {
+    it('should return 88 when max is 90 and multipleOf is 8', () => {
+      const result = utils.getPreviousMultiple(90, 8);
+      expect(result).to.equal(88);
+    });
+    it('should return -8 when max is 0 and multipleOf is 8', () => {
+      const result = utils.getPreviousMultiple(0, 8);
+      expect(result).to.equal(-8);
+    });
+  });
+  describe('getNextMultiple method', () => {
+    it('should return 88 when min is 80 and multipleOf is 8', () => {
+      const result = utils.getNextMultiple(80, 8);
+      expect(result).to.equal(88);
+    });
+    it('should return 8 when min is 0 and multipleOf is 8', () => {
+      const result = utils.getNextMultiple(0, 8);
+      expect(result).to.equal(8);
+    });
+  });
 });
