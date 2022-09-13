@@ -38,9 +38,14 @@ function traverse(schema, path, resolve, rootSchema, validateSchema) {
     // example values have highest precedence
     if (optionAPI('useExamplesValue') && Array.isArray(schema.examples)) {
       // include `default` value as example too
+      let randomExample;
       const fixedExamples = schema.examples.concat(
         'default' in schema ? [schema.default] : []);
-      const randomExample = random.pick(fixedExamples);
+        if (optionAPI('pickFirstFromExamples')) {
+          randomExample = fixedExamples[0];
+        } else {
+           randomExample = random.pick(fixedExamples);
+        }
       if (validateSchema) {
         let result;
         let clonedSchema;
@@ -78,7 +83,7 @@ function traverse(schema, path, resolve, rootSchema, validateSchema) {
       }
     }
     // If schema contains single example property
-    if (optionAPI('useExamplesValue') && schema.example) {
+    if (optionAPI('useExamplesValue') && !_.isNil(schema.example)) {
       if (validateSchema) {
         let result;
         let clonedSchema;

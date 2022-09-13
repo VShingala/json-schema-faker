@@ -29,6 +29,15 @@ describe('jsf generate', () => {
     jsf.option('useExamplesValue', true);
     expect(jsf.generate(schema, undefined, () => { return [{ error: 'some' }]; })).to.be.an('number');
   });
+  it('Take example when is nullish validation', () => {
+    const schema = {
+      type: 'integer',
+      format: 'int32',
+      example: 0,
+    };
+    jsf.option('useExamplesValue', true);
+    expect(jsf.generate(schema)).to.eql(0);
+  });
   it('Take one example from examples without validation', () => {
     const schema = {
       type: 'integer',
